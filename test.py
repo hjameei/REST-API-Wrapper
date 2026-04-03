@@ -1,6 +1,9 @@
 from thecatapi.rest_adapter import RestAdapter
+from dotenv import load_dotenv
 import os
 
+# Loading the environment variables from the .env file
+load_dotenv() 
 api_key = os.getenv("API_KEY")
 
 if not api_key:
