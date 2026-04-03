@@ -4,20 +4,26 @@ on: [push]
 
 jobs:
   my_first_job:
-    name: My first job
+    name: GitHub runner job
     runs-on: ubuntu-latest
+    env:
+      API_KEY: ${{ secrets.API_KEY }}
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+
       - name: Install dependencies
         run: |
-          source ~/venvs/website/bin/activate
-          python3 -m pip install --upgrade pip
-          pip3 install -r requirements.txt
+          python -m venv .venv
+          source .venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
       - name: Run script
         run: |
-          source ~/venvs/website/bin/activate
-          python3 test.py
-
+          source .venv/bin/activate
+          python test.py
