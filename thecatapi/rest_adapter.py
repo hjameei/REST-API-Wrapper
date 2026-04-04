@@ -18,7 +18,7 @@ class RestAdapter:
         :param ssl_verify: Normally set to True, but if having SSL/TLS cert validation issues, can turn off with False
         :param logger: (optional) If your app has a logger, pass it in here.
         """
-        self.url = "https://{}/{}/".format(hostname, ver)
+        self.url = "https://{}/{}".format(hostname, ver)
         self._api_key = api_key
         self._ssl_verify = ssl_verify
         self._logger = logger or logging.getLogger(__name__)

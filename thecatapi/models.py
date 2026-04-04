@@ -24,8 +24,19 @@ class Facts:
 
     def __str__(self):
         return f"Facts(id='{self.id}', fact='{self.fact}', breed_id='{self.breed_id}', title='{self.title}')"
-from typing import Optional
 
+class Weight:
+    def __init__(self, imperial: str, metric: str):
+        self.imperial = imperial
+        self.metric = metric
+    
+    def __str__(self):
+        return f"Weight(imperial='{self.imperial}', metric='{self.metric}')"
+
+class Category:
+    def __init__(self, id: int, name: str):
+        self.id = id
+        self.name = name
 
 class Image:
     def __init__(self, id: str, width: int, height: int, url: str) -> None:
@@ -33,20 +44,9 @@ class Image:
         self.width = width
         self.height = height
         self.url = url
-
-
-
-class Weight:
-    def __init__(self, imperial: str, metric: str):
-        self.imperial = imperial
-        self.metric = metric
-
-
-class Category:
-    def __init__(self, id: int, name: str):
-        self.id = id
-        self.name = name
-
+    
+    def __str__(self):
+        return f"Image(id='{self.id}', width={self.width}, height={self.height}, url='{self.url}')"
 
 class Breed:
     def __init__(self, weight: Union[Weight, dict], id: str, name: str, country_codes: str, country_code: str,
@@ -65,4 +65,26 @@ class Breed:
         self.wikipedia_url = wikipedia_url
         self.image = Image(**image) if isinstance(image, dict) else image
         self.__dict__.update(kwargs)
-        
+
+class ImageShort:
+    def __init__(self, id: int, url: str, categories: List[Category] = None, breeds: List[Breed] = None, **kwargs):
+        self.id = id
+        self.url = url
+        self.categories = [Category(**c) for c in categories] if categories else []
+        self.breeds = [Breed(**b) for b in breeds] if breeds else []
+        self.__dict__.update(kwargs)
+    
+    def __str__(self):
+        return f"ImageShort(id={self.id}, url='{self.url}', categories={self.categories}, breeds={self.breeds})"
+
+class ImageFull(ImageShort):
+    def __init__(self, id: int, url: str, sub_id: int = 0, created_at: str = '', original_filename: str = '',
+                 categories: List[Category] = None, breeds: List[Breed] = None, **kwargs):
+        super().__init__(id, url, categories, breeds)
+        self.sub_id = sub_id
+        self.created_at = created_at
+        self.original_filename = original_filename
+        self.__dict__.update(kwargs)
+
+    def __str__(self):
+        return f"ImageFull(id={self.id}, url='{self.url}', sub_id={self.sub_id}, created_at='{self.created_at}', original_filename='{self.original_filename}', categories={self.categories}, breeds={self.breeds})"
