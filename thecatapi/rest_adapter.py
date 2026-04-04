@@ -1,7 +1,7 @@
 import requests
 import requests.packages
 from typing import List, Dict
-
+from thecatapi.exceptions import TheCatAPIException
 
 class RestAdapter:
     def __init__(self, hostname: str, api_key: str = '', ver: str = 'v1', ssl_verify: bool = True):
@@ -12,12 +12,23 @@ class RestAdapter:
             # noinspection PyUnresolvedReferences
             requests.packages.urllib3.disable_warnings()
 
-    def get(self, endpoint: str, params: Dict = None) -> List[Dict]:
+    def _do(self, http_method: callable, endpoint: str, params: Dict = None, data: Dict = None):
+        full_url = self.url + endpoint
         headers = {'x-api-key': self._api_key}
-        response = requests.get(self.url + endpoint, headers=headers, params=params, verify=self._ssl_verify)
+        try:
+            response = requests.request(method=http_method, url=full_url, headers=headers, params=params, json=data, verify=self._ssl_verify)
+        except requests.exceptions.RequestException as e:
+            raise TheCatAPIException("Request failed") from e
         data_out = response.json()
         if response.status_code >= 200 and response.status_code <= 299:     # OK
             return data_out
-        raise Exception("Error: {}".format(data_out['message']))
-    
+        raise Exception(data_out["message"])
 
+    def get(self, endpoint: str, params: Dict = None) -> List[Dict]:
+        return self._do(http_method="GET", endpoint=endpoint, params=params)
+    
+    def post(self, endpoint: str, params: Dict = None, data: Dict = None) -> Dict:
+        return self._do(http_method="POST", endpoint=endpoint, params=params, data=data)
+    
+    def delete(self, endpoint: str, ep_params: Dict = None, data: Dict = None):
+        return self._do(http_method='DELETE', endpoint=endpoint, ep_params=ep_params, data=data)
