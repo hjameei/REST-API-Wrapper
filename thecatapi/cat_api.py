@@ -1,4 +1,5 @@
 import logging
+from typing import Callable, Iterator
 import requests
 from .rest_adapter import RestAdapter
 from .exceptions import TheCatAPIException
@@ -6,7 +7,8 @@ from .models import *
 
 
 class TheCatApi:
-    def __init__(self, hostname: str = 'api.thecatapi.com', api_key: str = '', ver: str = 'v1', ssl_verify: bool = True, logger: logging.Logger = None):
+    def __init__(self, hostname: str = 'api.thecatapi.com', api_key: str = '', ver: str = 'v1', ssl_verify: bool = True, 
+                logger: logging.Logger = None):
         self._rest_adapter = RestAdapter(hostname, api_key, ver, ssl_verify, logger)
 
     def get_kitty(self) -> ImageShort:
@@ -19,3 +21,22 @@ class TheCatApi:
     
     def fetch_image_data(self, image: ImageShort):
         image.data = self._rest_adapter.fetch_data(url=image.url)
+
+    def _page(self, endpoint: str, model: Callable[..., Model], max_amt: int = 100) -> Iterator[Model]:
+        amt_yielded = 0
+        curr_page = last_page = 1
+        params = {'limit': self._page_size, 'order': 'Desc'}
+        while curr_page <= last_page:
+            params['page'] = curr_page
+            result = self._rest_adapter.get(endpoint=endpoint, params=params)
+            last_page = int(result.headers.get('pagination-count', 1))
+            curr_page = int(result.headers.get('pagination-page')) + 1
+            for datum in result.data:
+                yield model(**datum)
+                amt_yielded += 1
+                if amt_yielded >= max_amt:
+                    last_page = 0
+                    break
+
+    def get_kitties_paged(self, max_amt: int = 100) -> Iterator[ImageShort]:
+        return self._page(endpoint='/images/search', model=ImageShort, max_amt=max_amt)

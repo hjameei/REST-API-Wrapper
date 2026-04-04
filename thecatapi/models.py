@@ -1,6 +1,8 @@
 import os
-from typing import List, Dict, Union
+from typing import List, Dict, TypeVar, Union
 from .exceptions import TheCatAPIException
+
+Model = TypeVar('Model', covariant=True)
 
 class Result:
     def __init__(self, status_code: int, message: str = '', data: List[Dict] = None):
@@ -40,7 +42,7 @@ class Category:
         self.id = id
         self.name = name
 
-class Image:
+class ImageFrame:
     def __init__(self, id: str, width: int, height: int, url: str) -> None:
         self.id = id
         self.width = width
@@ -48,12 +50,12 @@ class Image:
         self.url = url
     
     def __str__(self):
-        return f"Image(id='{self.id}', width={self.width}, height={self.height}, url='{self.url}')"
+        return f"ImageFrame(id='{self.id}', width={self.width}, height={self.height}, url='{self.url}')"
 
 class Breed:
     def __init__(self, weight: Union[Weight, dict], id: str, name: str, country_codes: str, country_code: str,
                  description: str, temperament: str = '', origin: str = '', life_span: str = '', alt_names: str = '',
-                 wikipedia_url: str = '', image: Union[Image, dict] = None, **kwargs) -> None:
+                 wikipedia_url: str = '', image: Union[ImageFrame, dict] = None, **kwargs) -> None:
         self.weight = Weight(**weight) if isinstance(weight, dict) else weight
         self.id = id
         self.name = name
@@ -65,7 +67,7 @@ class Breed:
         self.life_span = life_span
         self.alt_names = alt_names
         self.wikipedia_url = wikipedia_url
-        self.image = Image(**image) if isinstance(image, dict) else image
+        self.image = ImageFrame(**image) if isinstance(image, dict) else image
         self.__dict__.update(kwargs)
 
 class ImageShort:
