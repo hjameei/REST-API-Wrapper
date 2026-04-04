@@ -1,4 +1,6 @@
+import os
 from typing import List, Dict, Union
+from .exceptions import TheCatAPIException
 
 class Result:
     def __init__(self, status_code: int, message: str = '', data: List[Dict] = None):
@@ -67,15 +69,28 @@ class Breed:
         self.__dict__.update(kwargs)
 
 class ImageShort:
-    def __init__(self, id: int, url: str, categories: List[Category] = None, breeds: List[Breed] = None, **kwargs):
+    def __init__(self, id: int, url: str, categories: List[Category] = None, breeds: List[Breed] = None, data: bytes = bytes(), **kwargs):
         self.id = id
         self.url = url
         self.categories = [Category(**c) for c in categories] if categories else []
         self.breeds = [Breed(**b) for b in breeds] if breeds else []
+        self.data = data
         self.__dict__.update(kwargs)
     
     def __str__(self):
         return f"ImageShort(id={self.id}, url='{self.url}', categories={self.categories}, breeds={self.breeds})"
+    
+    def save_to(self, path: str = './', file_name: str = ''):
+        if not self.data:
+            raise TheCatAPIException("No data to save")
+        try:
+            save_file_name = file_name if file_name else self.url.split('/')[-1]
+            save_path = os.path.join(path, save_file_name)
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+            with open(save_path, "wb") as f:
+                f.write(self.data)
+        except Exception as e:
+            raise TheCatAPIException(str(e)) from e
 
 class ImageFull(ImageShort):
     def __init__(self, id: int, url: str, sub_id: int = 0, created_at: str = '', original_filename: str = '',
